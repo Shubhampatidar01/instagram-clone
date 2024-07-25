@@ -1,0 +1,176 @@
+<% include ./partials/header.ejs %>
+  <div class="w-full min-h-screen bg-zinc-900 text-white py-5">
+    <div class="w-full px-4 flex items-center justify-between">
+      <img class="w-1/4" src="/images/logo.png" alt="">
+      <div class="icons -mt-2 flex gap-5 items-center">
+        <i class="text-[1.4rem] ri-heart-3-line"></i>
+        <i class="text-[1.4rem] ri-messenger-line"></i>
+      </div>
+    </div>
+    <div class="story px-3 flex gap-3 overflow-auto mt-5">
+      <a href="/story/0">
+        <div class="circle flex-shrink-0">
+          <div
+            class="gradient w-[18vw] h-[18vw] bg-sky-100 rounded-full bg-gradient-to-r from-purple-700 to-orange-500 flex items-center justify-center">
+            <div class="inner w-[92%] h-[92%] rounded-full overflow-hidden">
+              <img class="w-full h-full object-cover" src="/images/uploads/<%= user.profilepicture %>" alt="">
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <%story.forEach(function(elem){%>
+        <a href="/story/<%=elem.user._id%>/0 ">
+          <div class="circle flex-shrink-0">
+            <div
+              class="gradient w-[18vw] h-[18vw] bg-sky-100 rounded-full bg-gradient-to-r from-purple-700 to-orange-500 flex items-center justify-center">
+              <div class="inner w-[92%] h-[92%] rounded-full overflow-hidden">
+                <img class="w-full h-full object-cover" src="/images/uploads/<%= elem.user.profilepicture %>" alt="">
+              </div>
+            </div>
+          </div>
+        </a>
+      <%})%>
+    </div>
+    <div  class="posts mb-20">
+     <%posts.reverse().forEach(function(elem){%>
+      <div data-id="<%=elem._id%>" class="post relative mt-10 w-full min-h-[50vh]">
+        <div class="title px-4 flex items-center gap-2">
+          <div class="w-[8vw] h-[8vw] bg-sky-100 rounded-full overflow-hidden">
+            <img class="w-full h-full object-cover" src="/images/uploads/<%=user.profilepicture%>" alt="">
+          </div>
+          <h4 class="text-sm"><%=elem.user.username%> </h4>
+          <h6 class="text-xs opacity-30">1d</h6>
+        </div>
+        <div class="  w-full h-96 mt-4 bg-sky-100 overflow-hidden">
+          <img data-id="<%=elem._id%>" class=" postimg w-full h-full object-cover" src="images/uploads/<%=elem.image%>" alt="">
+        </div>
+        <div class="options w-full px-4 flex justify-between items-center text-[1.4rem]">
+          <div class="flex gap-3 mt-2">
+            <i id="icons" data-id="<%=elem._id%>"  class="like <%= elem.likes.indexOf(user._id)==-1? 'ri-heart-3-line' : 'text-red-500  ri-heart-3-fill'%>"></i>
+            <i class="ri-chat-3-line">
+              
+            </i>
+            <i class="ri-share-circle-line"></i>
+          </div>
+          <i id="save" data-id="<%=elem._id%>" class="<%user.saved.indexOf(elem._id)===-1?'ri-bookmark-line' :'ri-bookmark-fill' %>"></i>
+        </div>
+        <h3 class="likess px-4 mt-2 text-sm leading-none tracking-tight"><%=elem.likes.length%></h3>
+        <h2 class="text-white font-light text-sm mt-2"><span class="font-semibold pl-4 pr-2"><%=elem.user.username%></span><%=elem.caption%></h2>
+      </div>
+     <%})%>
+      
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js" integrity="sha512-NQfB/bDaB8kaSXF8E77JjhHG5PM6XVRxvHzkZiwl3ddWCEPBa23T76MuWSwAJdMGJnmQqM0VeY9kFszsrBEFrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" 
+  integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" 
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+
+
+   
+    function handlelike(){
+
+      let posts=document.querySelector(".posts")
+      // let like=document.querySelector("#like")
+      posts.addEventListener("click",function(ev){
+        let icons=ev.target;
+        if(ev.target.classList.contains("like")){
+          axios(`/likes/${ev.target.dataset.id}`)
+          .then(function(res){
+            if(icons.classList.contains("ri-heart-3-line")){
+  
+              icons.classList.add("ri-heart-3-fill","text-red-500")
+              icons.classList.remove('ri-heart-3-line')
+            }else{
+              
+              icons.classList.remove("ri-heart-3-fill","text-red-500")
+              icons.classList.add('ri-heart-3-line')
+            }
+  
+  /* likess jo h counting ki class h  */
+            ev.target.parentNode.parentNode.parentNode.querySelector(".likess").textContent =res.data.likes.length+ 'likes'
+          })
+        }
+      })
+    }
+  
+
+     function makeheartAnimation(){
+      let icons=document.querySelector("#icons")
+      let posts=document.querySelector(".posts")
+      posts.addEventListener("click",function(ev){
+        if(ev.target.classList.contains('postimg')){
+          var icons=document.createElement("i");
+          icons.classList.add("ri-heart-3-fill",'text-6xl','text-red-500','rounded-none', 'z-[34]', 'absolute', 'top-1/2', 'left-1/2', '-translate-x-1/2', '-translate-y-1/2')
+          ev.target.parentNode.parentNode.appendChild(icons)
+ 
+              axios(`/likes/${ev.target.dataset.id}`)
+          .then(function(res){
+            var icons=ev.target.parentNode.parentNode.querySelector(".like")
+            
+            if(icons.classList.contains("ri-heart-3-line")){
+  
+            icons.classList.add("ri-heart-3-fill","text-red-500")
+                 icons.classList.remove('ri-heart-3-line')
+                    }else{
+  
+                  icons.classList.remove("ri-heart-3-fill","text-red-500")
+                icons.classList.add('ri-heart-3-line')
+                      } 
+
+/* likess jo h counting ki class h  */
+                        ev.target.parentNode.parentNode.parentNode.querySelector(".likess").textContent =res.data.likes.length+ 'likes'
+            
+            
+          })
+
+        gsap.to(icons,{
+            y:-300,
+            opacity:0,
+            scale:2.5,
+            ease:'linear',
+            // duration:.5,
+            delay:.4,
+            
+            onComplete:function(){
+            
+              ev.target.parentNode.parentNode.removeChild(icons);
+            }
+          })
+
+        
+
+        }
+      })
+
+     }
+     
+    function handlesave(){
+    let save=document.querySelector("#save")
+    save.addEventListener("click",function(ev){
+      axios.get(`/save/${ev.target.dataset.id}`)
+      .then(function(res){
+        if(ev.target.classList.contains("ri-bookmark-line")){
+          ev.target.classList.add("ri-bookmark-fill")
+          ev.target.classList.remove("ri-bookmark-line")
+
+        }else{
+          ev.target.classList.remove("ri-bookmark-fill")
+          ev.target.classList.add("ri-bookmark-line")
+        }
+      })
+
+      
+
+    })
+    }
+
+    handlesave()
+
+   handlelike()
+   makeheartAnimation()
+    
+  </script>
+  <% include ./partials/footer.ejs %>
